@@ -61,9 +61,7 @@ module.exports = class CacheHandler {
     console.log('buildId', buildId);
     try {
       const res = await axios.get(
-        `https://cache.dimlly.com/cache/${encodeURIComponent(
-          `${key}-${buildId}`
-        )}`
+        `https://fake/cache/${encodeURIComponent(`${key}-${buildId}`)}`
       );
 
       // console.log('Data received:', res.data);
@@ -87,9 +85,7 @@ module.exports = class CacheHandler {
       const tags = ctx.tags ?? headersCacheTags;
 
       const res = await axios.post(
-        `https://cache.dimlly.com/cache/${encodeURIComponent(
-          `${key}-${buildId}`
-        )}`,
+        `https://fake/cache/${encodeURIComponent(`${key}-${buildId}`)}`,
         {
           value: data,
           lastModified: Date.now(),
@@ -113,7 +109,7 @@ module.exports = class CacheHandler {
     tags = [tags].flat();
     try {
       const res = await axios.post(
-        `https://cache.dimlly.com/revalidate`,
+        `https://fake/revalidate`,
         { tags },
         {
           headers: {
