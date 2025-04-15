@@ -1,0 +1,76 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+// {
+//   "$schema": "node_modules/wrangler/config-schema.json",
+//   "name": "test-cache-app",
+//   "main": ".open-next/worker.js",
+//   "compatibility_date": "2025-03-01",
+//   "compatibility_flags": ["nodejs_compat"],
+//   "assets": {
+//     "binding": "ASSETS",
+//     "directory": ".open-next/assets"
+//   },
+//   "observability": {
+//     "enabled": true
+//   }
+
+// }
+
+// WORKED CACHE CONFIG (UNCOMMENT AND OPEN NEXT CONFIG)
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "test-cache-app",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".open-next/assets"
+  },
+  "placement": {
+    "mode": "smart"
+  },
+  "observability": {
+    "enabled": true
+  }
+  // "services": [
+  //   {
+  //     "binding": "WORKER_SELF_REFERENCE",
+  //     "service": "test-cache-app"
+  //   }
+  // ],
+  // // R2 incremental cache
+  // "r2_buckets": [
+  //   {
+  //     "binding": "NEXT_INC_CACHE_R2_BUCKET",
+  //     "bucket_name": "test-cache-handler"
+  //   }
+  // ],
+
+  // // DO Queue and DO Sharded Tag Cache
+  // "durable_objects": {
+  //   "bindings": [
+  //     {
+  //       "name": "NEXT_CACHE_DO_QUEUE",
+  //       "class_name": "DOQueueHandler"
+  //     },
+  //     // This is only required if you use On-demand revalidation
+  //     {
+  //       "name": "NEXT_TAG_CACHE_DO_SHARDED",
+  //       "class_name": "DOShardedTagCache"
+  //     }
+  //   ]
+  // },
+  // "migrations": [
+  //   {
+  //     "tag": "v1",
+  //     "new_sqlite_classes": [
+  //       "DOQueueHandler",
+  //       // This is only required if you use On-demand revalidation
+  //       "DOShardedTagCache"
+  //     ]
+  //   }
+  // ]
+}
