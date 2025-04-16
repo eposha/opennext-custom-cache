@@ -9,7 +9,7 @@ const config = {
       converter: 'edge',
       proxyExternalRequest: 'fetch',
 
-      queue: 'direct',
+      queue: 'dummy',
       incrementalCache: () =>
         import('./src/lib/custom-cache/incremental-cache').then(
           (mod) => mod.default

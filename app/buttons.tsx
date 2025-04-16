@@ -17,10 +17,16 @@ import { pathRevalidate, unstableRevalidate } from './action';
 const Buttons = () => {
   return (
     <div className='flex flex-col gap-4'>
-      <button onClick={() => unstableRevalidate('test5')}>
-        Unstable revalidate
+      <button
+        onClick={() => unstableRevalidate('test5')}
+        className='border border-green-500 p-4 rounded cursor-pointer'>
+        Unstable revalidate button
       </button>
-      <button onClick={() => pathRevalidate('/test')}>Path revalidate</button>
+      <button
+        onClick={() => pathRevalidate('/test')}
+        className='border border-green-500 p-4 rounded cursor-pointer'>
+        Path revalidate button
+      </button>
     </div>
   );
 };
