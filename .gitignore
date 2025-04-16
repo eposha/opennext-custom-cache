@@ -43,4 +43,4 @@ next-env.d.ts
 .dev.vars*
 
 
-/cache-handler.js
+cache-handler.js
