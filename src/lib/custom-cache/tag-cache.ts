@@ -3,13 +3,13 @@ import type { TagCache } from '@opennextjs/aws/types/overrides.js';
 
 import axios from 'axios';
 
-const tags = [
-  {
-    tag: { S: 'tag1' },
-    path: { S: 'path1' },
-    revalidatedAt: { N: '0' },
-  },
-];
+// const tags = [
+//   {
+//     tag: { S: 'tag1' },
+//     path: { S: 'path1' },
+//     revalidatedAt: { N: '0' },
+//   },
+// ];
 
 const tagCache: TagCache = {
   name: 'tag-cache',
@@ -50,12 +50,31 @@ const tagCache: TagCache = {
   getLastModified: async (path: string, lastModified?: number) => {
     console.log('Get Last Modified', path);
 
-    const revalidatedTags = tags.filter(
-      (tagPathMapping) =>
-        tagPathMapping.path.S === path &&
-        Number.parseInt(tagPathMapping.revalidatedAt.N) > (lastModified ?? 0)
-    );
-    return revalidatedTags.length > 0 ? -1 : lastModified ?? Date.now();
+    try {
+      const { data } = await axios.post(
+        `http://localhost:3001/cache-last-modified/`,
+        {
+          path,
+          lastModified,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      console.log('Get Last Modified', lastModified);
+      return data ? Number.parseInt(data) : Date.now();
+    } catch {
+      return Date.now();
+    }
+
+    // const revalidatedTags = tags.filter(
+    //   (tagPathMapping) =>
+    //     tagPathMapping.path.S === path &&
+    //     Number.parseInt(tagPathMapping.revalidatedAt.N) > (lastModified ?? 0)
+    // );
+    // return revalidatedTags.length > 0 ? -1 : lastModified ?? Date.now();
   },
   writeTags: async (newTags: any[]) => {
     console.log('Write Tags', newTags);
