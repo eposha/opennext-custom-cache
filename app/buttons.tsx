@@ -18,7 +18,6 @@ const Buttons = () => {
   return (
     <div className='flex flex-col gap-4'>
       <button onClick={() => unstableRevalidate('test5')}>
-        {/* <button onClick={() => revalidateTag('test5')}> */}
         Unstable revalidate
       </button>
       <button onClick={() => pathRevalidate('/test')}>Path revalidate</button>
@@ -27,19 +26,3 @@ const Buttons = () => {
 };
 
 export default Buttons;
-
-// get data {
-//   kind: 'FETCH',
-//   data: { headers: {}, body: '1744393751961', status: 200, url: '' },
-//   revalidate: 31536000
-// }
-
-// {
-//   value: {
-//     kind: 'FETCH',
-//     data: { headers: {}, body: '1744394022803', status: 200, url: '' },
-//     revalidate: 31536000
-//   },
-//   lastModified: 1744394022804,
-//   tags: [ 'test' ]
-// }
