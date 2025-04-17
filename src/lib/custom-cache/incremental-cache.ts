@@ -1,80 +1,120 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type { IncrementalCache } from '@opennextjs/aws/types/overrides';
+import { createHash } from 'node:crypto';
 
+import { error } from '@opennextjs/aws/adapters/logger.js';
+import type {
+  CacheValue,
+  IncrementalCache,
+  WithLastModified,
+} from '@opennextjs/aws/types/overrides.js';
 import axios from 'axios';
 
-// import fs from 'node:fs/promises';
-// import path from 'node:path';
+// import { IgnorableError } from '@opennextjs/aws/utils/error.js';
 
-const buildId = process.env.NEXT_BUILD_ID;
-// const basePath = path.resolve(process.cwd(), `./cache/${buildId}`);
+export const NAME = 'cache';
 
-const getCacheKey = (key: string) => {
-  // return path.join(basePath, `${key}.cache`);
+// export const BINDING_NAME = 'NEXT_INC_CACHE_R2_BUCKET';
+
+// export const PREFIX_ENV_NAME = 'NEXT_INC_CACHE_R2_PREFIX';
+export const DEFAULT_PREFIX = 'cache';
+
+export type KeyOptions = {
+  isFetch?: boolean;
+  directory?: string;
+  buildId?: string;
 };
 
-const cache: IncrementalCache = {
-  name: 'incremental-cache',
-  get: async (key: string) => {
-    // console.log('get key', key);
+export const FALLBACK_BUILD_ID = 'fallback-build-id';
 
-    // return null;
-    // const fileData = await fs.readFile(getCacheKey(key), 'utf-8');
-    // const data = JSON.parse(fileData);
-    // const { mtime } = await fs.stat(getCacheKey(key));
+export function computeCacheKey(key: string, options: KeyOptions) {
+  const {
+    isFetch = false,
+    directory = DEFAULT_PREFIX,
+    buildId = FALLBACK_BUILD_ID,
+  } = options;
+  const hash = createHash('sha256').update(key).digest('hex');
+  return `${directory}/${buildId}/${hash}.${
+    isFetch ? 'fetch' : 'cache'
+  }`.replace(/\/+/g, '/');
+}
+
+/**
+ * An instance of the Incremental Cache that uses an R2 bucket (`NEXT_INC_CACHE_R2_BUCKET`) as it's
+ * underlying data store.
+ *
+ * The directory that the cache entries are stored in can be configured with the `NEXT_INC_CACHE_R2_PREFIX`
+ * environment variable, and defaults to `incremental-cache`.
+ */
+const handleCache: IncrementalCache = {
+  name: NAME,
+
+  async get<IsFetch extends boolean = false>(
+    key: string,
+    isFetch?: IsFetch
+  ): Promise<WithLastModified<CacheValue<IsFetch>> | null> {
+    const path = getR2Key(key, isFetch);
 
     try {
-      const response = await axios.get(
-        `http://localhost:3001/cache/${encodeURIComponent(
-          `${buildId}___${key}`
-        )}`
+      const path = getR2Key(key, isFetch);
+      const { data: value } = await axios.get(
+        `http://localhost:3001/cache/${path}`
       );
-      const data = response.data;
-      const mtime = new Date(response.headers['last-modified'] as string);
 
-      console.log('get data: ', data);
+      const lastModified = value?.uploaded
+        ? new Date(value.uploaded).getTime()
+        : Date.now();
 
       return {
-        value: data,
-        lastModified: mtime?.getTime() ?? Date.now(),
+        value,
+        lastModified,
       };
-    } catch (err) {
+    } catch (e) {
+      error('Failed to get from cache', e);
       return null;
     }
-
-    // return {
-    //   value: data,
-    //   lastModified: mtime.getTime(),
-    // };
   },
 
-  set: async (key: any, value: any, isFetch: any) => {
-    console.log('set key', key, value, isFetch);
-    const data = JSON.stringify(value);
-    // const cacheKey = getCacheKey(key);
-    // We need to create the directory before writing the file
-    // await fs.mkdir(path.dirname(cacheKey), { recursive: true });
+  async set<IsFetch extends boolean = false>(
+    key: string,
+    value: CacheValue<IsFetch>,
+    isFetch?: IsFetch
+  ): Promise<void> {
+    try {
+      const path = getR2Key(key, isFetch);
 
-    await axios.post(
-      `http://localhost:3001/cache/${encodeURIComponent(
-        `${buildId}___${key}`
-      )}`,
-      { data },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+      await axios.put(
+        'http://localhost:3001/cache/',
+        { value: JSON.stringify({ ...value, uploaded: new Date() }), path },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    } catch (e) {
+      error('Failed to set to cache', e);
+    }
   },
-  delete: async (key: any) => {
+
+  async delete(key: string): Promise<void> {
+    const path = getR2Key(key);
+
     console.log('delete key', key);
-    await axios.delete(
-      `http://localhost:3001/cache/${encodeURIComponent(`${buildId}___${key}`)}`
-    );
-    // await fs.rm(getCacheKey(key));
+
+    try {
+      await axios.delete(`http://localhost:3001/cache/${path}`);
+    } catch (e) {
+      error('Failed to delete from cache', e);
+    }
   },
 };
 
-export default cache;
+const getR2Key = (key: string, isFetch?: boolean): string => {
+  return computeCacheKey(key, {
+    // directory: getCloudflareContext().env[PREFIX_ENV_NAME],
+    buildId: process.env.NEXT_BUILD_ID,
+    isFetch,
+  });
+};
+
+export default handleCache;
