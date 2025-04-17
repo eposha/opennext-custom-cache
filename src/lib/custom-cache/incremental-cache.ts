@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createHash } from 'node:crypto';
 
 import { error } from '@opennextjs/aws/adapters/logger.js';
@@ -9,13 +8,8 @@ import type {
 } from '@opennextjs/aws/types/overrides.js';
 import axios from 'axios';
 
-// import { IgnorableError } from '@opennextjs/aws/utils/error.js';
-
 export const NAME = 'cache';
 
-// export const BINDING_NAME = 'NEXT_INC_CACHE_R2_BUCKET';
-
-// export const PREFIX_ENV_NAME = 'NEXT_INC_CACHE_R2_PREFIX';
 export const DEFAULT_PREFIX = 'cache';
 
 export type KeyOptions = {
@@ -52,8 +46,6 @@ const handleCache: IncrementalCache = {
     key: string,
     isFetch?: IsFetch
   ): Promise<WithLastModified<CacheValue<IsFetch>> | null> {
-    const path = getR2Key(key, isFetch);
-
     try {
       const path = getR2Key(key, isFetch);
       const { data: value } = await axios.get(
