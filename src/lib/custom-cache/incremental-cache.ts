@@ -47,7 +47,7 @@ const handleCache: IncrementalCache = {
     isFetch?: IsFetch
   ): Promise<WithLastModified<CacheValue<IsFetch>> | null> {
     try {
-      const path = getR2Key(key, isFetch);
+      const path = getKey(key, isFetch);
       const { data: value } = await axios.get(
         `http://localhost:3001/cache/${path}`
       );
@@ -72,7 +72,7 @@ const handleCache: IncrementalCache = {
     isFetch?: IsFetch
   ): Promise<void> {
     try {
-      const path = getR2Key(key, isFetch);
+      const path = getKey(key, isFetch);
 
       await axios.put(
         'http://localhost:3001/cache/',
@@ -89,7 +89,7 @@ const handleCache: IncrementalCache = {
   },
 
   async delete(key: string): Promise<void> {
-    const path = getR2Key(key);
+    const path = getKey(key);
 
     console.log('delete key', key);
 
@@ -101,9 +101,8 @@ const handleCache: IncrementalCache = {
   },
 };
 
-const getR2Key = (key: string, isFetch?: boolean): string => {
+const getKey = (key: string, isFetch?: boolean): string => {
   return computeCacheKey(key, {
-    // directory: getCloudflareContext().env[PREFIX_ENV_NAME],
     buildId: process.env.NEXT_BUILD_ID,
     isFetch,
   });
